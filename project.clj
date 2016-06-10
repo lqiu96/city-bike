@@ -1,4 +1,4 @@
-(defproject city-bike "0.1.1-SNAPSHOT"
+(defproject city-bike "0.1.1"
   :description "FIXME: write description"
   :url "https://github.com/lqiu96/city-bike"
   :license {:name "Eclipse Public License"

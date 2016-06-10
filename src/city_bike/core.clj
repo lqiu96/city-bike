@@ -12,14 +12,13 @@
   "Looks into the current directory's files and filds all
   files that match are csv file. Puts them into a vector."
   []
-  (let [file-vec (-> "user.dir"
-                     (System/getProperty)
-                     (io/file)
-                     (file-seq)
-                     (vec))]
+  (let [file-vec (-> (System/getProperty "user.dir")        ;Get all the files in the current directory
+                     (io/file)                              ;Cast to Java File type
+                     (file-seq)                             ;File seq of directory
+                     (vec))]                                ;Convert to vector
     (->> file-vec
-         (filter #(boolean (re-find #".csv" (.getName %))))
-         (map #(.getName %)))))
+         (filter #(boolean (re-find #".csv" (.getName %)))) ;Filter out any file names without .csv extension
+         (map #(.getName %)))))                             ;Get the names of the filtered vector
 
 (defn parse-csv-data
   "Reads all the data from csv file and splits the data into a map data structure.
@@ -29,11 +28,23 @@
   (->> (slurp file-name)
        (str/split-lines)
        (map #(str/replace % #" " "-"))
+       (map #(str/replace % #"\"" ""))
        (map #(str/split % #","))
        (rest)
        (map #(zipmap header %))))
 
-(get-csv-files)
+(defn get-user-type
+  [data type]
+  (filter #(= type (% :user-type)) data))
+
+(defn get-customers
+  [data]
+  (get-user-type data "Customer"))
+
+(defn get-subscribers
+  [data]
+  (get-user-type data "Subscriber"))
+
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
