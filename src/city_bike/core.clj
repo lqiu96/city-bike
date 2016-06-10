@@ -12,8 +12,14 @@
   "Looks into the current directory's files and filds all
   files that match are csv file. Puts them into a vector."
   []
-  (let [file-vec (vec (file-seq (io/file (System/getProperty "user.dir"))))]
-    (map #(.getName %) (filter #(boolean (re-find #".csv" (.getName %))) file-vec))))
+  (let [file-vec (-> "user.dir"
+                     (System/getProperty)
+                     (io/file)
+                     (file-seq)
+                     (vec))]
+    (->> file-vec
+         (filter #(boolean (re-find #".csv" (.getName %))))
+         (map #(.getName %)))))
 
 (defn parse-csv-data
   "Reads all the data from csv file and splits the data into a map data structure.
@@ -27,8 +33,7 @@
        (rest)
        (map #(zipmap header %))))
 
-(println (map parse-csv-data (get-csv-files)))
-
+(get-csv-files)
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
