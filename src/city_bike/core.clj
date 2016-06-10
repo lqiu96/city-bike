@@ -3,6 +3,7 @@
            [clojure.java.io :as io])
   (:gen-class))
 
+; These are the headers in the CSV file
 (def header [:duration :start-time :stop-time :start-station-id
              :start-station-name :start-station-lat :start-station-long
              :end-station-id :end-station-name :end-station-lat
@@ -25,25 +26,43 @@
   First splits based of a new-line then commas. Data is then put into a map with the header
   keyword being the map key."
   [file-name]
-  (->> (slurp file-name)
-       (str/split-lines)
-       (map #(str/replace % #" " "-"))
-       (map #(str/replace % #"\"" ""))
-       (map #(str/split % #","))
-       (rest)
-       (map #(zipmap header %))))
+  (->> (slurp file-name)                                    ;Read the data straight from file
+       (str/split-lines)                                    ;Split based on new line character
+       (map #(str/replace % #" " "-"))                      ;Replace spaces with dash
+       (map #(str/replace % #"\"" ""))                      ;Each line has quotes (\") around data, removes it
+       (map #(str/split % #","))                            ;Split based on CSV deliminter: comma (,)
+       (rest)                                               ;Remove the header from the file
+       (map #(zipmap header %))))                           ;Create a map with header as the keys
 
-(defn get-user-type
-  [data type]
-  (filter #(= type (% :user-type)) data))
+(defn filter-data
+  "Filters out the data based on the data type inputted"
+  [data type filter-type]
+  (filter #(= type (% filter-type)) data))
 
 (defn get-customers
+  "Gets the data which users are only customers"
   [data]
-  (get-user-type data "Customer"))
+  (filter-data data "Customer" :user-type))
 
 (defn get-subscribers
+  "Gets the data which users are only subscribers"
   [data]
-  (get-user-type data "Subscriber"))
+  (filter-data data "Subscriber" :user-type))
+
+(defn get-unknown
+  "Gets the data which users have unkown gender"
+  [data]
+  (filter-data data "0" :gender))
+
+(defn get-male
+  "Gets the data which users are male"
+  [data]
+  (filter-data data "1" :gender))
+
+(defn get-female
+  "Gets the data which users are female"
+  [data]
+  (filter-data data "2" :gender))
 
 (defn -main
   "I don't do a whole lot ... yet."
