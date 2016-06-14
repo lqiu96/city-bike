@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file. This change
 ## [0.1.1] - 2016-06-10
 ### Changed
 - Documentation on how to make the widgets.
+- Added functionality to find the velocity
+- Calculate raw distance based on two latitude and longitude data points
 
 ### Removed
 - `make-widget-sync` - we're all async, all the time.

@@ -31,7 +31,7 @@
        (map #(str/replace % #" " "-"))                      ; Replace spaces with dash
        (map #(str/replace % #"\"" ""))                      ; Each line has quotes (\") around data, removes it
        (map #(str/split % #","))                            ; Split based on CSV deliminter: comma (,)
-       (rest)                                               ; Remove the header from the file
+       (rest)                                               ; Remove the header line from the file
        (map #(zipmap header %))))                           ; Create a map with header as the keys
 
 ; Data filtering functions
@@ -78,19 +78,13 @@
   Haversine Function (https://rosettacode.org/wiki/Haversine_formula#clojure)"
   [lat1 long1 lat2 long2]
   (let [R 6372.8
-        dlat (Math/toRadians (- lat2 lat1))
+        dlat (Math/toRadians (- lat2 lat1))                 ; Java Math requires angles in radians
         dlong (Math/toRadians (- long2 long1))
         lat1 (Math/toRadians lat1)
         lat2 (Math/toRadians lat2)
         a (+ (Math/pow (Math/sin (/ dlat 2)) 2)
              (* (Math/cos lat1) (Math/cos lat2) (Math/pow (Math/sin (/ dlong 2)) 2)))]
     (* R 2 (Math/asin (Math/sqrt a)))))
-
-(defn average-velocity
-  "Finds the average velocity of the bike trip. Assumes that
-  the distance is given in kilometers and the time is given in seconds"
-  [distance time]
-  (/ (* distance 1000) time))
 
 (defn velocity-data
   "Creates a list of vectors that holds a list of latitudes,
@@ -99,18 +93,39 @@
   (let [lat1-list (map read-string (get-data data :start-station-lat))
         long1-list (map read-string (get-data data :start-station-long))
         lat2-list (map read-string (get-data data :end-station-lat))
-        long2-list (map read-string (get-data data :end-station-long))
-        time (map read-string (get-data data :duration))]
-    (map vector lat1-list long1-list lat2-list long2-list time)))
+        long2-list (map read-string (get-data data :end-station-long))]
+    (map vector lat1-list long1-list lat2-list long2-list))) ; Creates a list of vectors which nth values are grouped
+
+(defn average-velocity
+  "Finds the average velocity of the bike trip. Assumes that
+  the distance is given in kilometers and the time is given in seconds"
+  [distance time]
+  (/ (* distance 1000) time))
 
 (defn calculate-average-velocity
   "Calculates the average velocity of every single value
   stored the list of vectors"
-  [vel-data]
-  (let [time-values (map #(nth % 4) vel-data)]
+  [data]
+  (let [vel-data (velocity-data data)
+        time-values (map read-string (get-data data :duration))]
     (->> vel-data
-         (map #(haversine (first %) (second %) (nth % 2) (nth % 3)))
-         (map #(average-velocity %2 %1) time-values))))
+         (map #(haversine (first %) (second %) (nth % 2) (nth % 3))) ; Argument supplied to map is a vector [1 2 3] not 1 2 3
+         (map #(average-velocity %2 %1) time-values))))              ; Thread-last macro required its value as first parameter
+
+(defn average
+  [nums]
+  (/ (apply + nums)
+     (count nums)))
+
+(defn compare-gender-average
+  [data]
+  (do
+    (println (str "Unknown: " (average (calculate-average-velocity (filter-unknown data))) " m/s"))
+    (println (str "Male: " (average (calculate-average-velocity (filter-male data))) " m/s"))
+    (println (str "Female: " (average (calculate-average-velocity (filter-female data))) " m/s"))))
+
+(def data (parse-csv-data "2013-07 - Citi Bike trip data.csv"))
+(compare-gender-average data)
 
 (defn -main
   "I don't do a whole lot ... yet."
