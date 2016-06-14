@@ -73,6 +73,9 @@
 
 ; Distance Calculating Functions
 (defn haversine
+  "Calculates the distance in kilometers between two locations
+  given the two latitudes and longitudes. It is caluclated from the
+  Haversine Function (https://rosettacode.org/wiki/Haversine_formula#clojure)"
   [lat1 long1 lat2 long2]
   (let [R 6372.8
         dlat (Math/toRadians (- lat2 lat1))
@@ -84,10 +87,14 @@
     (* R 2 (Math/asin (Math/sqrt a)))))
 
 (defn average-velocity
+  "Finds the average velocity of the bike trip. Assumes that
+  the distance is given in kilometers and the time is given in seconds"
   [distance time]
   (/ (* distance 1000) time))
 
 (defn velocity-data
+  "Creates a list of vectors that holds a list of latitudes,
+  longitudes, and trip durations"
   [data]
   (let [lat1-list (map read-string (get-data data :start-station-lat))
         long1-list (map read-string (get-data data :start-station-long))
@@ -97,6 +104,8 @@
     (map vector lat1-list long1-list lat2-list long2-list time)))
 
 (defn calculate-average-velocity
+  "Calculates the average velocity of every single value
+  stored the list of vectors"
   [vel-data]
   (let [time-values (map #(nth % 4) vel-data)]
     (->> vel-data
