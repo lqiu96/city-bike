@@ -1,7 +1,8 @@
 (ns city-bike.core
   (require [clojure.string :as str]
            [clojure.java.io :as io])
-  (:gen-class))
+  (:gen-class)
+  (:import (clojure.lang Symbol)))
 
 ; These are the headers in the CSV file
 (def header [:duration :start-time :stop-time :start-station-id
@@ -36,34 +37,48 @@
 
 ; Data filtering functions
 (defn filter-data
-  "Filters out the data based on the data type inputted"
-  [data type filter-type]
-  (filter #(= type (% filter-type)) data))
+  "Filters out the data based on the data type inputted.
+  Allows for comparison based on comparator supplied"
+  [data comparison type filter-type]
+  (filter #(comparison (if (= Symbol (read-string (% filter-type)))
+                         (% filter-type)
+                         (read-string (% filter-type))) type) data))
+
+; Functions which filter out certain people
+(defn filter-duration
+  "Filters the data to get users based on duration of bike ride"
+  [data comparator duration]
+  (filter-data data comparator duration :duration))
 
 (defn filter-customers
   "Filters the data to get users are only customers"
   [data]
-  (filter-data data "Customer" :user-type))
+  (filter-data data = "Customer" :user-type))
 
 (defn filter-subscribers
   "Filters the data to get users are only subscribers"
   [data]
-  (filter-data data "Subscriber" :user-type))
+  (filter-data data = "Subscriber" :user-type))
 
 (defn filter-unknown
   "Filters the data to get users have unkown gender"
   [data]
-  (filter-data data "0" :gender))
+  (filter-data data = 0 :gender))
 
 (defn filter-male
   "Filters the data to get users are male"
   [data]
-  (filter-data data "1" :gender))
+  (filter-data data = 1 :gender))
 
 (defn filter-female
   "Filters the data to get users are female"
   [data]
-  (filter-data data "2" :gender))
+  (filter-data data = 2 :gender))
+
+(defn filter-bike-id
+  "Filters the data to get users based on bike's id"
+  [data comparator id]
+  (filter-data data comparator id :bike-id))
 
 ; Data Retreiving Function
 (defn get-data
@@ -71,7 +86,7 @@
   [data type]
   (map type data))
 
-; Distance Calculating Functions
+; Distance and Velocity Calculating Functions
 (defn haversine
   "Calculates the distance in kilometers between two locations
   given the two latitudes and longitudes. It is caluclated from the
@@ -113,19 +128,28 @@
          (map #(average-velocity %2 %1) time-values))))              ; Thread-last macro required its value as first parameter
 
 (defn average
+  "Calculate the average based on the values of the numbers.
+  Adds up all the numbers in a list and divides by the number in the list"
   [nums]
   (/ (apply + nums)
      (count nums)))
 
-(defn compare-gender-average
+(defn compare-gender-velocity-average
+  "Compares the average values of the genders and
+  prints out the average velocity of all the genders"
   [data]
   (do
     (println (str "Unknown: " (average (calculate-average-velocity (filter-unknown data))) " m/s"))
     (println (str "Male: " (average (calculate-average-velocity (filter-male data))) " m/s"))
     (println (str "Female: " (average (calculate-average-velocity (filter-female data))) " m/s"))))
 
-(def data (parse-csv-data "2013-07 - Citi Bike trip data.csv"))
-(compare-gender-average data)
+(defn compare-sub-cust-velocity-average
+  "Compares the average values of the genders and
+  prints out the average velocity of subscribers vs customers"
+  [data]
+  (do
+    (println (str "Customer: " (average (calculate-average-velocity (filter-customers data))) " m/s"))
+    (println (str "Subscriber: " (average (calculate-average-velocity (filter-subscribers data))) " m/s"))))
 
 (defn -main
   "I don't do a whole lot ... yet."
