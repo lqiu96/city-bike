@@ -1,6 +1,6 @@
 (ns city-bike.velocity
-  (require [city-bike.core :as core]
-           [city-bike.filter :as filter]))
+  (require [city-bike.filter :as filter]
+           [city-bike.helper :as helper]))
 
 ; Distance and Velocity Calculating Functions
 (defn haversine
@@ -21,10 +21,10 @@
   "Creates a list of vectors that holds a list of latitudes,
   longitudes, and trip durations"
   [data]
-  (let [lat1-list (map read-string (core/get-data data :start-station-lat))
-        long1-list (map read-string (core/get-data data :start-station-long))
-        lat2-list (map read-string (core/get-data data :end-station-lat))
-        long2-list (map read-string (core/get-data data :end-station-long))]
+  (let [lat1-list (helper/get-data data :start-station-lat)
+        long1-list (helper/get-data data :start-station-long)
+        lat2-list (helper/get-data data :end-station-lat)
+        long2-list (helper/get-data data :end-station-long)]
     (map vector lat1-list long1-list lat2-list long2-list))) ; Creates a list of vectors which nth values are grouped
 
 (defn average-velocity
@@ -38,7 +38,7 @@
   stored the list of vectors"
   [data]
   (let [vel-data (velocity-data data)
-        time-values (map read-string (core/get-data data :duration))]
+        time-values (helper/get-data data :duration)]
     (->> vel-data
          (map #(haversine (first %) (second %) (nth % 2) (nth % 3))) ; Argument supplied to map is a vector [1 2 3] not 1 2 3
          (map #(average-velocity %2 %1) time-values))))              ; Thread-last macro required its value as first parameter

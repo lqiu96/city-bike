@@ -1,14 +1,13 @@
 (ns city-bike.filter
-  (:import (clojure.lang Symbol)))
+  (require [city-bike.helper :as helper]))
 
 ; Data filtering functions
 (defn filter-data
   "Filters out the data based on the data type inputted.
   Allows for comparison based on comparator supplied"
   [data comparison type filter-type]
-  (filter #(comparison (if (= Symbol (read-string (% filter-type)))
-                         (% filter-type)
-                         (read-string (% filter-type))) type) data))
+  (filter #((helper/convert-to-function comparison)
+            (helper/convert-to-object % filter-type) type) data))
 
 ; Functions which filter out certain people
 (defn filter-duration
@@ -34,27 +33,27 @@
 (defn filter-customers
   "Filters the data to get users are only customers"
   [data]
-  (filter-data data = "Customer" :user-type))
+  (filter-data data "=" "Customer" :user-type))
 
 (defn filter-subscribers
   "Filters the data to get users are only subscribers"
   [data]
-  (filter-data data = "Subscriber" :user-type))
+  (filter-data data "=" "Subscriber" :user-type))
 
 (defn filter-unknown
   "Filters the data to get users have unkown gender"
   [data]
-  (filter-data data = 0 :gender))
+  (filter-data data "=" 0 :gender))
 
 (defn filter-male
   "Filters the data to get users are male"
   [data]
-  (filter-data data = 1 :gender))
+  (filter-data data "=" 1 :gender))
 
 (defn filter-female
   "Filters the data to get users are female"
   [data]
-  (filter-data data = 2 :gender))
+  (filter-data data "=" 2 :gender))
 
 (defn filter-bike-id
   "Filters the data to get users based on bike's id"
