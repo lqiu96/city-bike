@@ -4,8 +4,10 @@
   (:gen-class))
 
 (def data (data/parse-csv-data "Test.csv"))
-(vel/compare-gender-velocity-average data)
-(vel/compare-sub-cust-velocity-average data)
+(def gender-data (vel/compare-gender-velocity-average data))
+(println gender-data)
+(def customer-data (vel/compare-sub-cust-velocity-average data))
+(println customer-data)
 
 (defn -main
   "I don't do a whole lot ... yet."

@@ -8,7 +8,7 @@
   given the two latitudes and longitudes. It is caluclated from the
   Haversine Function (https://rosettacode.org/wiki/Haversine_formula#clojure)"
   [lat1 long1 lat2 long2]
-  (let [R 6372.8
+  (let [R 6372.8                                            ; Kilometers from center of the earth
         dlat (Math/toRadians (- lat2 lat1))                 ; Java Math requires angles in radians
         dlong (Math/toRadians (- long2 long1))
         lat1 (Math/toRadians lat1)
@@ -54,15 +54,19 @@
   "Compares the average values of the genders and
   prints out the average velocity of all the genders"
   [data]
-  (do
-    (println (str "Unknown: " (average (calculate-average-velocity (filter/filter-unknown data))) " m/s"))
-    (println (str "Male: " (average (calculate-average-velocity (filter/filter-male data))) " m/s"))
-    (println (str "Female: " (average (calculate-average-velocity (filter/filter-female data))) " m/s"))))
+  (let [gender-headings [:unknown :male :female]
+        unknown-average (average (calculate-average-velocity (filter/filter-unknown data)))
+        male-average (average (calculate-average-velocity (filter/filter-male data)))
+        female-average (average (calculate-average-velocity (filter/filter-female data)))
+        average-vec [unknown-average male-average female-average]]
+    (zipmap gender-headings average-vec)))
 
 (defn compare-sub-cust-velocity-average
   "Compares the average values of the genders and
   prints out the average velocity of subscribers vs customers"
   [data]
-  (do
-    (println (str "Customer: " (average (calculate-average-velocity (filter/filter-customers data))) " m/s"))
-    (println (str "Subscriber: " (average (calculate-average-velocity (filter/filter-subscribers data))) " m/s"))))
+  (let [gender-headings [:customer :subscriber]
+        customer-average (average (calculate-average-velocity (filter/filter-customers data)))
+        subscriber-average (average (calculate-average-velocity (filter/filter-subscribers data)))
+        average-vec [customer-average subscriber-average]]
+    (zipmap gender-headings average-vec)))
